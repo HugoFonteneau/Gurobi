@@ -1,5 +1,5 @@
-import numpy as np
 import gurobipy as gp
+import numpy as np
 from gurobipy import GRB
 
 def generate_knapsack(num_items):
@@ -16,20 +16,19 @@ def generate_knapsack(num_items):
 
 def solve_knapsack_model(values, weights, capacity):
     num_items = len(values)
-    # Turn values and weights numpy arrays to dict
-    # ...
+    # Turn values and weights numpy arrays to tupledict
+    keys, dict_values, dict_weights = gp.multidict({i: (values[i], weights[i]) for i in range(num_items)})
 
     with gp.Env() as env:
         with gp.Model(name="knapsack", env=env) as model:
             # Define decision variables using the Model.addVars() method
-            # ...
+            x = model.addVars(num_items, vtype=GRB.BINARY, name="x")
 
             # Define objective function using the Model.setObjective() method
-            # Build the LinExpr using the tupledict.prod() method
-            # ...
+            model.setObjective(x.prod(dict_values), sense=GRB.MAXIMIZE)
 
             # Define capacity constraint using the Model.addConstr() method
-            # ...
+            model.addConstr(x.prod(dict_weights) <= capacity, "Contrainte de capacité")
 
             model.optimize()
 
