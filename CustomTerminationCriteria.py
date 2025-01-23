@@ -18,19 +18,20 @@ def callback(model, where, *, cbdata):
 
     GAP = abs(model.cbGet(GRB.Callback.MIP_OBJBST) - model.cbGet(GRB.Callback.MIP_OBJBND)) / model.cbGet(GRB.Callback.MIP_OBJBND)
 
-    if (abs(cbdata.last_gap - GAP) < epsilon_to_compare_gap) or (model.cbGet(GRB.Callback.RUNTIME) - cbdata.last_gap_change_time > time_from_best):
-        print("GAP : ", cbdata.last_gap - GAP)
-        print("TIME : ", model.cbGet(GRB.Callback.RUNTIME) - cbdata.last_gap_change_time)
-        model.terminate()
-    if GAP != cbdata.last_gap :
+    if (abs(cbdata.last_gap - GAP) > epsilon_to_compare_gap):
         cbdata.last_gap = GAP
         cbdata.last_gap_change_time = model.cbGet(GRB.Callback.RUNTIME)
+
+    print(model.cbGet(GRB.Callback.RUNTIME) - cbdata.last_gap_change_time)
+
+    if abs(cbdata.last_gap_change_time - model.cbGet(GRB.Callback.RUNTIME)) > time_from_best :
+        model.terminate()
         return
 
 
 with gp.read("mkp.mps") as model:
     # Global variables used in the callback function
-    time_from_best = 50
+    time_from_best = 10
     epsilon_to_compare_gap = 1e-4
 
     # Initialize data passed to the callback function
